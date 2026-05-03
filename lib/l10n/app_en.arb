@@ -1,0 +1,75 @@
+{
+  "@@locale": "en",
+
+  "appName": "Strange",
+  "@appName": {"description": "The application name"},
+
+  "tabLearning": "Learning",
+  "tabProjects": "Projects",
+  "tabHabits": "Habits",
+
+  "navHome": "Home",
+  "navStats": "Stats",
+  "navSettings": "Settings",
+  "navAbout": "About",
+
+  "addCard": "Add Card",
+  "editCard": "Edit Card",
+  "deleteCard": "Delete",
+  "archiveCard": "Archive",
+  "restoreCard": "Undo",
+
+  "cardNameHint": "Card name",
+  "cardNameLabel": "Name",
+  "cardArchived": "Card archived",
+  "noCardsYet": "No cards yet. Tap + to add one!",
+
+  "save": "Save",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "delete": "Delete",
+  "deleteCardConfirm": "Delete this card?",
+  "deleteCardMessage": "This will permanently delete the card and all its sessions.",
+
+  "pomodoro": "Pomodoro",
+  "deepWork": "Deep Work",
+  "startSession": "Start",
+  "pause": "Pause",
+  "resume": "Resume",
+  "skipBreak": "Skip Break",
+  "endSession": "End Session",
+  "focus": "FOCUS",
+  "shortBreak": "SHORT BREAK",
+  "longBreak": "LONG BREAK",
+
+  "settingsTitle": "Settings",
+  "pomodoroTimer": "Pomodoro Timer",
+  "deepWorkTimer": "Deep Work Timer",
+  "general": "General",
+  "workDuration": "Work Session",
+  "shortBreakDuration": "Short Break",
+  "longBreakDuration": "Long Break",
+  "roundsBeforeLongBreak": "Rounds Before Long Break",
+  "maxPauseDuration": "Max Pause Duration",
+  "sound": "Sound",
+  "vibrate": "Vibrate",
+  "language": "Language",
+  "darkMode": "Dark Mode",
+
+  "aboutTitle": "About",
+  "version": "Version",
+
+  "statsTitle": "Statistics",
+  "range7Days": "7D",
+  "range1Month": "1M",
+  "range3Months": "3M",
+  "range1Year": "1Y",
+  "noStats": "Start a session to see your insights here",
+
+  "minutes": "min",
+  "seconds": "sec",
+  "hours": "hr",
+  "totalTime": "Total Time",
+  "sessionsCount": "Sessions",
+  "customColor": "Custom"
+}

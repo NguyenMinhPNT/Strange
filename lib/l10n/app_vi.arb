@@ -1,0 +1,73 @@
+{
+  "@@locale": "vi",
+
+  "appName": "Strange",
+  "tabLearning": "Học tập",
+  "tabProjects": "Dự án",
+  "tabHabits": "Thói quen",
+
+  "navHome": "Trang chủ",
+  "navStats": "Thống kê",
+  "navSettings": "Cài đặt",
+  "navAbout": "Giới thiệu",
+
+  "addCard": "Thêm thẻ",
+  "editCard": "Chỉnh sửa thẻ",
+  "deleteCard": "Xóa",
+  "archiveCard": "Lưu trữ",
+  "restoreCard": "Hoàn tác",
+
+  "cardNameHint": "Tên thẻ",
+  "cardNameLabel": "Tên",
+  "cardArchived": "Đã lưu trữ thẻ",
+  "noCardsYet": "Chưa có thẻ nào. Nhấn + để thêm!",
+
+  "save": "Lưu",
+  "cancel": "Hủy",
+  "confirm": "Xác nhận",
+  "delete": "Xóa",
+  "deleteCardConfirm": "Xóa thẻ này?",
+  "deleteCardMessage": "Thẻ và tất cả phiên làm việc sẽ bị xóa vĩnh viễn.",
+
+  "pomodoro": "Pomodoro",
+  "deepWork": "Tập trung sâu",
+  "startSession": "Bắt đầu",
+  "pause": "Tạm dừng",
+  "resume": "Tiếp tục",
+  "skipBreak": "Bỏ qua nghỉ",
+  "endSession": "Kết thúc",
+  "focus": "TẬP TRUNG",
+  "shortBreak": "NGHỈ NGẮN",
+  "longBreak": "NGHỈ DÀI",
+
+  "settingsTitle": "Cài đặt",
+  "pomodoroTimer": "Hẹn giờ Pomodoro",
+  "deepWorkTimer": "Tập trung sâu",
+  "general": "Chung",
+  "workDuration": "Thời gian làm việc",
+  "shortBreakDuration": "Nghỉ ngắn",
+  "longBreakDuration": "Nghỉ dài",
+  "roundsBeforeLongBreak": "Số vòng trước khi nghỉ dài",
+  "maxPauseDuration": "Thời gian tạm dừng tối đa",
+  "sound": "Âm thanh",
+  "vibrate": "Rung",
+  "language": "Ngôn ngữ",
+  "darkMode": "Chế độ tối",
+
+  "aboutTitle": "Giới thiệu",
+  "version": "Phiên bản",
+
+  "statsTitle": "Thống kê",
+  "range7Days": "7N",
+  "range1Month": "1T",
+  "range3Months": "3T",
+  "range1Year": "1N",
+  "noStats": "Bắt đầu một phiên để xem thống kê",
+
+  "minutes": "phút",
+  "seconds": "giây",
+  "hours": "giờ",
+  "totalTime": "Tổng thời gian",
+  "sessionsCount": "Phiên",
+  "customColor": "Tùy chỉnh"
+}
