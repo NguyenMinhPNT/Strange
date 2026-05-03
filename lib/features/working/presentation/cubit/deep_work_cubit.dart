@@ -186,6 +186,7 @@ class DeepWorkCubit extends Cubit<DeepWorkState> {
     final remaining = _settings.maxPauseSeconds - _pauseElapsedSeconds;
     emit(DeepWorkPaused(
       elapsedWorkSeconds: _elapsedWorkSeconds,
+      totalPauseSeconds: _totalPauseSeconds,
       pauseElapsedSeconds: _pauseElapsedSeconds,
       maxPauseSeconds: _settings.maxPauseSeconds,
       remainingPauseSeconds: remaining.clamp(0, _settings.maxPauseSeconds),

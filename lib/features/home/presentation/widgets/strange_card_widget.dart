@@ -13,7 +13,7 @@ import '../cubit/home_cubit.dart';
 
 /// A single clay card widget displayed in the card list.
 ///
-/// - Tap: navigate to WorkingPage
+/// - Tap: navigate directly to PomodoroPage
 /// - Long-press + drag: reorder (handled by parent ReorderableListView)
 /// - Swipe right → left: delete with confirmation dialog
 /// - Swipe left → right: archive with undo snackbar
@@ -111,7 +111,7 @@ class _CardBodyState extends State<_CardBody> {
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) {
         setState(() => _isPressed = false);
-        context.push(RoutePaths.workingPath(widget.card.id));
+        context.push(RoutePaths.pomodoroPath(widget.card.id));
       },
       onTapCancel: () => setState(() => _isPressed = false),
       child: AnimatedScale(

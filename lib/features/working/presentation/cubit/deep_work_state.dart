@@ -17,12 +17,14 @@ final class DeepWorkRunning extends DeepWorkState {
 final class DeepWorkPaused extends DeepWorkState {
   DeepWorkPaused({
     required this.elapsedWorkSeconds,
+    required this.totalPauseSeconds,
     required this.pauseElapsedSeconds,
     required this.maxPauseSeconds,
     required this.remainingPauseSeconds,
   });
 
   final int elapsedWorkSeconds;
+  final int totalPauseSeconds;
   final int pauseElapsedSeconds;
   final int maxPauseSeconds;
   final int remainingPauseSeconds;
