@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +10,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/claymorphism/clay_theme.dart';
 import '../../../settings/domain/entities/pomodoro_settings.dart';
 import '../../domain/entities/enums/pomodoro_phase.dart';
+import '../../domain/entities/timer_recovery_params.dart';
 import '../cubit/pomodoro_cubit.dart';
 import '../cubit/pomodoro_state.dart';
 import '../widgets/circular_countdown.dart';
@@ -15,9 +18,10 @@ import '../widgets/round_dots_widget.dart';
 import '../widgets/timer_control_buttons.dart';
 
 class PomodoroPage extends StatelessWidget {
-  const PomodoroPage({super.key, required this.cardId});
+  const PomodoroPage({super.key, required this.cardId, this.recovery});
 
   final int cardId;
+  final TimerRecoveryParams? recovery;
 
   @override
   Widget build(BuildContext context) {
@@ -27,16 +31,22 @@ class PomodoroPage extends StatelessWidget {
 
     return BlocProvider(
       create: (_) => getIt<PomodoroCubit>(),
-      child: _PomodoroView(cardId: cardId, settings: settings),
+      child:
+          _PomodoroView(cardId: cardId, settings: settings, recovery: recovery),
     );
   }
 }
 
 class _PomodoroView extends StatefulWidget {
-  const _PomodoroView({required this.cardId, required this.settings});
+  const _PomodoroView({
+    required this.cardId,
+    required this.settings,
+    this.recovery,
+  });
 
   final int cardId;
   final PomodoroSettings settings;
+  final TimerRecoveryParams? recovery;
 
   @override
   State<_PomodoroView> createState() => _PomodoroViewState();
@@ -44,6 +54,33 @@ class _PomodoroView extends StatefulWidget {
 
 class _PomodoroViewState extends State<_PomodoroView> {
   bool _sessionStarted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.recovery != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _startRecovery());
+    }
+  }
+
+  void _startRecovery() {
+    final r = widget.recovery!;
+    final phase = PomodoroPhase.fromString(r.pomodoroPhase);
+    // completedRounds: during work phase = round - 1, during break = round
+    final completedRounds = (phase == PomodoroPhase.work)
+        ? (r.pomodoroRound - 1).clamp(0, 999)
+        : r.pomodoroRound;
+    setState(() => _sessionStarted = true);
+    context.read<PomodoroCubit>().startSession(
+          widget.cardId,
+          widget.settings,
+          resumeRound: r.pomodoroRound,
+          resumePhase: phase,
+          resumeElapsedSec: 0, // phase elapsed unknown; restart phase from 0
+          resumeCompletedRounds: completedRounds,
+          resumeTotalBreakSec: r.pomodoroTotalBreakSec,
+        );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -228,9 +265,9 @@ class _PomodoroViewState extends State<_PomodoroView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            completedRounds > 0
-                ? '🎉 Round $completedRounds done!'
-                : '⏸ Break over!',
+            nextPhase == PomodoroPhase.work
+                ? 'Break over!'
+                : 'Round $completedRounds done!',
             style: AppTextStyles.bodyBold.copyWith(fontSize: 20),
           ),
           const SizedBox(height: 8),

@@ -50,6 +50,10 @@ class DeepWorkCubit extends Cubit<DeepWorkState> {
 
     _persistRunningState();
     _startTicking();
+    unawaited(_timerService.startForegroundTask(
+      'Deep Work — 00:00:00 focused',
+      'Tap to return',
+    ));
     _emitRunning();
   }
 

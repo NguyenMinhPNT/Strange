@@ -72,6 +72,10 @@ class PomodoroCubit extends Cubit<PomodoroState> {
 
     _persistRunningState();
     _startTicking();
+    unawaited(_timerService.startForegroundTask(
+      'Pomodoro — ${_phase.displayLabel} — ${TimerService.formatMmSs(_targetSeconds)} remaining',
+      'Round $_currentRound of ${_settings.shortBreakInterval}',
+    ));
     _emitRunning();
   }
 

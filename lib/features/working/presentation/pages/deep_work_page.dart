@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/claymorphism/clay_theme.dart';
 import '../../../settings/domain/entities/deep_work_settings.dart';
+import '../../domain/entities/timer_recovery_params.dart';
 import '../cubit/deep_work_cubit.dart';
 import '../cubit/deep_work_state.dart';
 import '../widgets/pause_bar_indicator.dart';
@@ -14,25 +17,32 @@ import '../widgets/stopwatch_display.dart';
 import '../widgets/timer_control_buttons.dart';
 
 class DeepWorkPage extends StatelessWidget {
-  const DeepWorkPage({super.key, required this.cardId});
+  const DeepWorkPage({super.key, required this.cardId, this.recovery});
 
   final int cardId;
+  final TimerRecoveryParams? recovery;
 
   @override
   Widget build(BuildContext context) {
     final settings = getIt<DeepWorkSettings>();
     return BlocProvider(
       create: (_) => getIt<DeepWorkCubit>(),
-      child: _DeepWorkView(cardId: cardId, settings: settings),
+      child:
+          _DeepWorkView(cardId: cardId, settings: settings, recovery: recovery),
     );
   }
 }
 
 class _DeepWorkView extends StatefulWidget {
-  const _DeepWorkView({required this.cardId, required this.settings});
+  const _DeepWorkView({
+    required this.cardId,
+    required this.settings,
+    this.recovery,
+  });
 
   final int cardId;
   final DeepWorkSettings settings;
+  final TimerRecoveryParams? recovery;
 
   @override
   State<_DeepWorkView> createState() => _DeepWorkViewState();
@@ -40,6 +50,25 @@ class _DeepWorkView extends StatefulWidget {
 
 class _DeepWorkViewState extends State<_DeepWorkView> {
   bool _sessionStarted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.recovery != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _startRecovery());
+    }
+  }
+
+  void _startRecovery() {
+    final r = widget.recovery!;
+    setState(() => _sessionStarted = true);
+    context.read<DeepWorkCubit>().startSession(
+          widget.cardId,
+          widget.settings,
+          resumeElapsedWorkSec: r.elapsedWorkSec,
+          resumeTotalPauseSec: r.deepWorkTotalPauseSec,
+        );
+  }
 
   @override
   Widget build(BuildContext context) {

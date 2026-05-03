@@ -6,6 +6,7 @@ import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/settings/presentation/pages/about_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/stats/presentation/pages/stats_page.dart';
+import '../../features/working/domain/entities/timer_recovery_params.dart';
 import '../../features/working/presentation/pages/deep_work_page.dart';
 import '../../features/working/presentation/pages/pomodoro_page.dart';
 import '../../features/working/presentation/pages/working_page.dart';
@@ -43,14 +44,16 @@ final appRouter = GoRouter(
       path: RoutePaths.pomodoro,
       builder: (context, state) {
         final cardId = int.parse(state.pathParameters['cardId']!);
-        return PomodoroPage(cardId: cardId);
+        final recovery = state.extra as TimerRecoveryParams?;
+        return PomodoroPage(cardId: cardId, recovery: recovery);
       },
     ),
     GoRoute(
       path: RoutePaths.deepWork,
       builder: (context, state) {
         final cardId = int.parse(state.pathParameters['cardId']!);
-        return DeepWorkPage(cardId: cardId);
+        final recovery = state.extra as TimerRecoveryParams?;
+        return DeepWorkPage(cardId: cardId, recovery: recovery);
       },
     ),
     GoRoute(
