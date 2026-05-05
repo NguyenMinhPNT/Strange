@@ -21,6 +21,8 @@ class HeatmapCalendar extends StatefulWidget {
 
 class _HeatmapCalendarState extends State<HeatmapCalendar> {
   DateTime? _tappedDay;
+  late Map<String, int> _statsByDay;
+  late List<List<DateTime?>> _weeks;
 
   void _onTap(DateTime day, int seconds) {
     setState(() => _tappedDay = day);
@@ -51,25 +53,16 @@ class _HeatmapCalendarState extends State<HeatmapCalendar> {
 
   @override
   Widget build(BuildContext context) {
-    final statsByDay = {
+    _statsByDay = {
       for (final s in widget.data) _dayKey(s.date): s.totalSeconds,
     };
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final start = widget.range.startDate;
-
-    // Build list of all days in range
-    final days = <DateTime>[];
-    var d = start;
-    while (!d.isAfter(today)) {
-      days.add(d);
-      d = d.add(const Duration(days: 1));
-    }
-
-    // Group into weeks (columns), starting on Monday
     final firstMonday = _startOfWeek(start);
-    final weeks = <List<DateTime?>>[];
+
+    _weeks = <List<DateTime?>>[];
     var weekStart = firstMonday;
     while (!weekStart.isAfter(today)) {
       final week = <DateTime?>[];
@@ -77,40 +70,44 @@ class _HeatmapCalendarState extends State<HeatmapCalendar> {
         final day = weekStart.add(Duration(days: i));
         week.add(day.isBefore(start) || day.isAfter(today) ? null : day);
       }
-      weeks.add(week);
+      _weeks.add(week);
       weekStart = weekStart.add(const Duration(days: 7));
     }
 
-    const dotSize = 10.0;
-    const dotSpacing = 3.0;
-    const cell = dotSize + dotSpacing;
-    const labelHeight = 18.0;
-    const dayLabelWidth = 24.0;
+    const dotSize = 15.0;
+    const rowGap = 9.0;
+    const columnGap = 9.0;
+    const dayLabelWidth = 44.0;
+    const cellWidth = dotSize + columnGap;
+    const cellHeight = dotSize + rowGap;
+    final chartWidth = dayLabelWidth + _weeks.length * cellWidth;
+    const chartHeight = 7 * cellHeight;
 
-    final chartWidth = weeks.length * cell + dayLabelWidth;
-    const chartHeight = 7 * cell + labelHeight;
-
-    return SizedBox(
-      height: chartHeight,
-      child: GestureDetector(
-        onTapUp: (details) {
-          final dx = details.localPosition.dx - dayLabelWidth;
-          final dy = details.localPosition.dy - labelHeight;
-          if (dx < 0 || dy < 0) return;
-          final col = (dx / cell).floor();
-          final row = (dy / cell).floor();
-          if (col >= weeks.length || row >= 7) return;
-          final day = weeks[col][row];
-          if (day == null) return;
-          final seconds = statsByDay[_dayKey(day)] ?? 0;
-          _onTap(day, seconds);
-        },
-        child: CustomPaint(
-          size: Size(chartWidth, chartHeight),
-          painter: _HeatmapPainter(
-            weeks: weeks,
-            statsByDay: statsByDay,
-            tappedDay: _tappedDay,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SizedBox(
+        width: chartWidth,
+        height: chartHeight,
+        child: GestureDetector(
+          onTapUp: (details) {
+            final dx = details.localPosition.dx - dayLabelWidth;
+            final dy = details.localPosition.dy;
+            if (dx < 0 || dy < 0) return;
+            final col = (dx / cellWidth).floor();
+            final row = (dy / cellHeight).floor();
+            if (col >= _weeks.length || row >= 7) return;
+            final day = _weeks[col][row];
+            if (day == null) return;
+            final seconds = _statsByDay[_dayKey(day)] ?? 0;
+            _onTap(day, seconds);
+          },
+          child: CustomPaint(
+            size: Size(chartWidth, chartHeight),
+            painter: _HeatmapPainter(
+              weeks: _weeks,
+              statsByDay: _statsByDay,
+              tappedDay: _tappedDay,
+            ),
           ),
         ),
       ),
@@ -136,41 +133,23 @@ class _HeatmapPainter extends CustomPainter {
   final Map<String, int> statsByDay;
   final DateTime? tappedDay;
 
-  static const dotSize = 10.0;
-  static const dotSpacing = 3.0;
-  static const cell = dotSize + dotSpacing;
-  static const labelHeight = 18.0;
-  static const dayLabelWidth = 24.0;
-
-  static const _dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-  static const _monthNames = [
-    '',
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
+  static const dotSize = 15.0;
+  static const rowGap = 9.0;
+  static const columnGap = 9.0;
+  static const dayLabelWidth = 44.0;
+  static const cellWidth = dotSize + columnGap;
+  static const cellHeight = dotSize + rowGap;
+  static const _dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   @override
   void paint(Canvas canvas, Size size) {
-    final textPainter = TextPainter(
-      textDirection: TextDirection.ltr,
-    );
+    final textPainter = TextPainter(textDirection: TextDirection.ltr);
 
-    // Draw day-of-week labels (Mon–Sun)
     for (int row = 0; row < 7; row++) {
       textPainter.text = TextSpan(
         text: _dayLabels[row],
         style: const TextStyle(
-          fontSize: 9,
+          fontSize: 13,
           color: AppColors.textSecondary,
           fontWeight: FontWeight.w500,
         ),
@@ -178,85 +157,56 @@ class _HeatmapPainter extends CustomPainter {
       textPainter.layout();
       textPainter.paint(
         canvas,
-        Offset(
-            0, labelHeight + row * cell + (dotSize - textPainter.height) / 2),
+        Offset(0, row * cellHeight + (dotSize - textPainter.height) / 2),
       );
     }
 
-    // Draw month labels & dots
-    int? lastMonth;
     for (int col = 0; col < weeks.length; col++) {
-      final week = weeks[col];
-      final firstDay = week.firstWhere((d) => d != null, orElse: () => null);
-
-      // Month label on first column of that month
-      if (firstDay != null && firstDay.month != lastMonth) {
-        lastMonth = firstDay.month;
-        textPainter.text = TextSpan(
-          text: _monthNames[firstDay.month],
-          style: const TextStyle(
-            fontSize: 9,
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w500,
-          ),
-        );
-        textPainter.layout();
-        textPainter.paint(
-          canvas,
-          Offset(dayLabelWidth + col * cell, 0),
-        );
-      }
-
       for (int row = 0; row < 7; row++) {
-        final day = week[row];
-        final cx = dayLabelWidth + col * cell + dotSize / 2;
-        final cy = labelHeight + row * cell + dotSize / 2;
+        final day = weeks[col][row];
+        if (day == null) continue;
 
-        Color color;
-        if (day == null) {
-          color = Colors.transparent;
-        } else {
-          final key = '${day.year}-${day.month}-${day.day}';
-          final seconds = statsByDay[key] ?? 0;
-          color = _heatColor(seconds);
-        }
+        final key = '${day.year}-${day.month}-${day.day}';
+        final seconds = statsByDay[key] ?? 0;
+        final color = _heatColor(seconds);
+        final cx = dayLabelWidth + col * cellWidth + dotSize / 2;
+        final cy = row * cellHeight + dotSize / 2;
 
-        final paint = Paint()..color = color;
+        canvas.drawCircle(Offset(cx, cy), dotSize / 2, Paint()..color = color);
 
-        final isTapped = day != null &&
-            tappedDay != null &&
+        final isTapped = tappedDay != null &&
             day.year == tappedDay!.year &&
             day.month == tappedDay!.month &&
             day.day == tappedDay!.day;
-
-        if (color != Colors.transparent) {
-          canvas.drawCircle(Offset(cx, cy), dotSize / 2, paint);
-          if (isTapped) {
-            canvas.drawCircle(
-              Offset(cx, cy),
-              dotSize / 2 + 1.5,
-              Paint()
-                ..color = AppColors.textPrimary
-                ..style = PaintingStyle.stroke
-                ..strokeWidth = 1.5,
-            );
-          }
+        if (isTapped) {
+          canvas.drawCircle(
+            Offset(cx, cy),
+            dotSize / 2 + 1.5,
+            Paint()
+              ..color = AppColors.primaryDark
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 1.5,
+          );
         }
       }
     }
   }
 
   Color _heatColor(int seconds) {
-    if (seconds == 0) return AppColors.heatmapLevel0;
-    if (seconds < AppConstants.heatmapLevel1Seconds)
-      return AppColors.heatmapLevel1;
-    if (seconds < AppConstants.heatmapLevel2Seconds)
-      return AppColors.heatmapLevel2;
-    if (seconds < AppConstants.heatmapLevel3Seconds)
-      return AppColors.heatmapLevel3;
-    if (seconds < AppConstants.heatmapLevel4Seconds)
-      return AppColors.heatmapLevel4;
-    return AppColors.heatmapLevel5;
+    if (seconds == 0) return const Color(0xFFF6E7E5);
+    if (seconds < AppConstants.heatmapLevel1Seconds) {
+      return const Color(0xFFF3CCC7);
+    }
+    if (seconds < AppConstants.heatmapLevel2Seconds) {
+      return const Color(0xFFF09C96);
+    }
+    if (seconds < AppConstants.heatmapLevel3Seconds) {
+      return const Color(0xFFEB6D66);
+    }
+    if (seconds < AppConstants.heatmapLevel4Seconds) {
+      return const Color(0xFFE03A33);
+    }
+    return const Color(0xFFD52B1E);
   }
 
   @override

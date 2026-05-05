@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../app/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_drawer.dart';
+import '../../domain/entities/day_stat.dart';
+import '../../domain/entities/enums/stats_range.dart';
 import '../cubit/stats_cubit.dart';
 import '../cubit/stats_state.dart';
 import '../widgets/column_chart_widget.dart';
@@ -118,7 +121,7 @@ class _LoadedBody extends StatefulWidget {
 
 class _LoadedBodyState extends State<_LoadedBody> {
   static const _sectionLabels = [
-    'Activity',
+    'Focus Heatmap',
     'Daily Breakdown',
     'By Category',
   ];
@@ -127,6 +130,10 @@ class _LoadedBodyState extends State<_LoadedBody> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedSection = _sectionLabels.contains(_selectedSection)
+        ? _selectedSection
+        : _sectionLabels.first;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -141,12 +148,12 @@ class _LoadedBodyState extends State<_LoadedBody> {
               decoration: BoxDecoration(
                 color: AppColors.surfaceElevated,
                 borderRadius: BorderRadius.circular(16),
-                border:
-                    Border.all(color: AppColors.textSecondary.withOpacity(0.2)),
+                border: Border.all(
+                    color: AppColors.textSecondary.withValues(alpha: 0.2)),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
-                  value: _selectedSection,
+                  value: selectedSection,
                   dropdownColor: AppColors.surfaceElevated,
                   items: _sectionLabels
                       .map(
@@ -177,13 +184,12 @@ class _LoadedBodyState extends State<_LoadedBody> {
             ),
           ),
           const SizedBox(height: 20),
-          if (_selectedSection == 'Activity') ...[
-            const StatsSectionHeader(title: 'Activity'),
-            HeatmapCalendar(
-                data: widget.state.heatmap, range: widget.state.range),
-            const SizedBox(height: 6),
-            const HeatmapLegend(),
-          ] else if (_selectedSection == 'Daily Breakdown') ...[
+          if (selectedSection == 'Focus Heatmap') ...[
+            _FocusHeatmapCard(
+              data: widget.state.heatmap,
+              range: widget.state.range,
+            ),
+          ] else if (selectedSection == 'Daily Breakdown') ...[
             const StatsSectionHeader(title: 'Daily Breakdown'),
             _ClayCard(child: ColumnChartWidget(data: widget.state.columns)),
           ] else ...[
@@ -196,6 +202,78 @@ class _LoadedBodyState extends State<_LoadedBody> {
             ),
           ],
           const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _FocusHeatmapCard extends StatelessWidget {
+  const _FocusHeatmapCard({
+    required this.data,
+    required this.range,
+  });
+
+  final List<DayStat> data;
+  final StatsRange range;
+
+  @override
+  Widget build(BuildContext context) {
+    final monthLabel = DateFormat('MMMM yyyy', 'en_US').format(DateTime.now());
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceElevated,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.clayShadowNeutral,
+            blurRadius: 16,
+            offset: Offset(0, 6),
+          ),
+          BoxShadow(
+            color: AppColors.clayHighlight,
+            blurRadius: 0,
+            spreadRadius: -1,
+            offset: Offset(0, -1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Focus Heatmap',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              Text(
+                monthLabel,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textOnSurface,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.chevron_left_rounded,
+                  size: 20, color: AppColors.textSecondary),
+              const SizedBox(width: 4),
+              const Icon(Icons.chevron_right_rounded,
+                  size: 20, color: AppColors.textSecondary),
+            ],
+          ),
+          const SizedBox(height: 12),
+          HeatmapCalendar(data: data, range: range),
+          const SizedBox(height: 10),
+          const HeatmapLegend(),
         ],
       ),
     );

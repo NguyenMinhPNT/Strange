@@ -7,43 +7,49 @@ class HeatmapLegend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final levels = [
-      (AppColors.heatmapLevel0, 'None'),
-      (AppColors.heatmapLevel1, '<15m'),
-      (AppColors.heatmapLevel2, '<30m'),
-      (AppColors.heatmapLevel3, '<1h'),
-      (AppColors.heatmapLevel4, '<2h'),
-      (AppColors.heatmapLevel5, '2h+'),
+    const levels = <Color>[
+      Color(0xFFF6E7E5),
+      Color(0xFFF3CCC7),
+      Color(0xFFF1BBB5),
+      Color(0xFFF09C96),
+      Color(0xFFEB6D66),
+      Color(0xFFE03A33),
+      Color(0xFFD52B1E),
     ];
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const Text(
           'Less',
-          style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
+          style: TextStyle(
+            fontSize: 14,
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w500,
+          ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: 12),
         ...levels.map(
-          (l) => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            child: Tooltip(
-              message: l.$2,
-              child: Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: l.$1,
-                  shape: BoxShape.circle,
-                ),
+          (color) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            child: Container(
+              width: 15,
+              height: 15,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
               ),
             ),
           ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: 12),
         const Text(
           'More',
-          style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
+          style: TextStyle(
+            fontSize: 14,
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );
