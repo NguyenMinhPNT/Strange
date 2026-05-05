@@ -1,3 +1,4 @@
+import '../../domain/entities/stats_card.dart';
 import '../../domain/entities/column_data.dart';
 import '../../domain/entities/day_stat.dart';
 import '../../domain/entities/enums/stats_range.dart';
@@ -22,6 +23,8 @@ final class StatsLoaded extends StatsState {
     required this.pieSlices,
     required this.range,
     required this.totalWorkSeconds,
+    required this.cards,
+    required this.selectedCardId,
   });
 
   final List<DayStat> heatmap;
@@ -29,6 +32,8 @@ final class StatsLoaded extends StatsState {
   final List<PieSlice> pieSlices;
   final StatsRange range;
   final int totalWorkSeconds;
+  final List<StatsCard> cards;
+  final int? selectedCardId;
 }
 
 final class StatsError extends StatsState {

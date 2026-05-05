@@ -9,6 +9,6 @@ class GetHeatmapDataUsecase {
 
   final StatsRepository _repository;
 
-  Future<List<DayStat>> call(DateTime start, DateTime end) =>
-      _repository.getHeatmapData(start, end);
+  Future<List<DayStat>> call(DateTime start, DateTime end, [int? cardId]) =>
+      _repository.getHeatmapData(start, end, cardId);
 }

@@ -133,6 +133,7 @@ class _LoadedBodyState extends State<_LoadedBody> {
     final selectedSection = _sectionLabels.contains(_selectedSection)
         ? _selectedSection
         : _sectionLabels.first;
+    final selectedCardId = widget.state.selectedCardId;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -141,47 +142,99 @@ class _LoadedBodyState extends State<_LoadedBody> {
         children: [
           const StatsRangeSelector(),
           const SizedBox(height: 20),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceElevated,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                    color: AppColors.textSecondary.withValues(alpha: 0.2)),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: selectedSection,
-                  dropdownColor: AppColors.surfaceElevated,
-                  items: _sectionLabels
-                      .map(
-                        (label) => DropdownMenuItem(
-                          value: label,
-                          child: Text(label,
-                              style: const TextStyle(
-                                  color: AppColors.textPrimary)),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceElevated,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                        color: AppColors.textSecondary.withValues(alpha: 0.2)),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int?>(
+                      value: selectedCardId,
+                      dropdownColor: AppColors.surfaceElevated,
+                      items: [
+                        const DropdownMenuItem<int?>(
+                          value: null,
+                          child: Text('All',
+                              style: TextStyle(color: AppColors.textPrimary)),
                         ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _selectedSection = value;
-                      });
-                    }
-                  },
-                  icon: const Icon(Icons.arrow_drop_down,
-                      color: AppColors.primary),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                        ...widget.state.cards.map(
+                          (card) => DropdownMenuItem<int?>(
+                            value: card.id,
+                            child: Text(card.name,
+                                style: const TextStyle(
+                                    color: AppColors.textPrimary)),
+                          ),
+                        )
+                      ],
+                      onChanged: (value) {
+                        context.read<StatsCubit>().changeCardFilter(value);
+                      },
+                      icon: const Icon(Icons.arrow_drop_down,
+                          color: AppColors.primary),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceElevated,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                          color:
+                              AppColors.textSecondary.withValues(alpha: 0.2)),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: selectedSection,
+                        dropdownColor: AppColors.surfaceElevated,
+                        items: _sectionLabels
+                            .map(
+                              (label) => DropdownMenuItem(
+                                value: label,
+                                child: Text(label,
+                                    style: const TextStyle(
+                                        color: AppColors.textPrimary)),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() {
+                              _selectedSection = value;
+                            });
+                          }
+                        },
+                        icon: const Icon(Icons.arrow_drop_down,
+                            color: AppColors.primary),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           if (selectedSection == 'Focus Heatmap') ...[

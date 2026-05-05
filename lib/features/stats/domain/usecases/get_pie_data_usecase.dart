@@ -9,6 +9,6 @@ class GetPieDataUsecase {
 
   final StatsRepository _repository;
 
-  Future<List<PieSlice>> call(DateTime start, DateTime end) =>
-      _repository.getPieData(start, end);
+  Future<List<PieSlice>> call(DateTime start, DateTime end, [int? cardId]) =>
+      _repository.getPieData(start, end, cardId);
 }

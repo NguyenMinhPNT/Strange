@@ -150,6 +150,7 @@ extension GetItInjectableX on _i174.GetIt {
           gh<_i1039.GetHeatmapDataUsecase>(),
           gh<_i53.GetColumnDataUsecase>(),
           gh<_i650.GetPieDataUsecase>(),
+          gh<_i662.StatsRepository>(),
         ));
     gh.factory<_i663.HomeCubit>(() => _i663.HomeCubit(
           gh<_i33.WatchCardsByTypeUseCase>(),

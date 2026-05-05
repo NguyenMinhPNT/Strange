@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../../core/database/daos/card_dao.dart';
 import '../../../../core/database/daos/session_dao.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../home/domain/entities/enums/card_type.dart';
+import '../../domain/entities/stats_card.dart';
 import '../../domain/entities/column_data.dart';
 import '../../domain/entities/day_stat.dart';
 import '../../domain/entities/pie_slice.dart';
@@ -16,11 +16,13 @@ class StatsLocalDatasource {
   final SessionDao _sessionDao;
   final CardDao _cardDao;
 
-  Future<List<DayStat>> getHeatmapData(DateTime start, DateTime end) async {
+  Future<List<DayStat>> getHeatmapData(DateTime start, DateTime end,
+      [int? cardId]) async {
     final sessions = await _sessionDao.getSessionsInRange(start, end);
     final Map<DateTime, int> byDay = {};
 
     for (final s in sessions) {
+      if (cardId != null && s.cardId != cardId) continue;
       final day = DateTime(
         s.startedAt.year,
         s.startedAt.month,
@@ -35,7 +37,8 @@ class StatsLocalDatasource {
       ..sort((a, b) => a.date.compareTo(b.date));
   }
 
-  Future<List<ColumnData>> getColumnData(DateTime start, DateTime end) async {
+  Future<List<ColumnData>> getColumnData(DateTime start, DateTime end,
+      [int? cardId]) async {
     final sessions = await _sessionDao.getSessionsInRange(start, end);
     final allCards = await _cardDao.getAllCards();
     final cardTypeMap = {
@@ -45,6 +48,7 @@ class StatsLocalDatasource {
     final Map<DateTime, _TypeBucket> byDay = {};
 
     for (final s in sessions) {
+      if (cardId != null && s.cardId != cardId) continue;
       final day = DateTime(
         s.startedAt.year,
         s.startedAt.month,
@@ -75,7 +79,8 @@ class StatsLocalDatasource {
       ..sort((a, b) => a.date.compareTo(b.date));
   }
 
-  Future<List<PieSlice>> getPieData(DateTime start, DateTime end) async {
+  Future<List<PieSlice>> getPieData(DateTime start, DateTime end,
+      [int? cardId]) async {
     final sessions = await _sessionDao.getSessionsInRange(start, end);
     final allCards = await _cardDao.getAllCards();
     final cardTypeMap = {
@@ -87,6 +92,7 @@ class StatsLocalDatasource {
     int habitTotal = 0;
 
     for (final s in sessions) {
+      if (cardId != null && s.cardId != cardId) continue;
       final type = cardTypeMap[s.cardId] ?? CardType.learning;
       switch (type) {
         case CardType.learning:
@@ -115,6 +121,13 @@ class StatsLocalDatasource {
         color: AppColors.chartHabit,
       ),
     ];
+  }
+
+  Future<List<StatsCard>> getAllCards() async {
+    final allCards = await _cardDao.getAllCards();
+    return allCards
+        .map((card) => StatsCard(id: card.id, name: card.name))
+        .toList();
   }
 }
 

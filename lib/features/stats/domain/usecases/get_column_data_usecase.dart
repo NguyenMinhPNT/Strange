@@ -9,6 +9,6 @@ class GetColumnDataUsecase {
 
   final StatsRepository _repository;
 
-  Future<List<ColumnData>> call(DateTime start, DateTime end) =>
-      _repository.getColumnData(start, end);
+  Future<List<ColumnData>> call(DateTime start, DateTime end, [int? cardId]) =>
+      _repository.getColumnData(start, end, cardId);
 }
