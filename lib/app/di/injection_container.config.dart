@@ -44,6 +44,20 @@ import 'package:strange/features/settings/domain/entities/deep_work_settings.dar
     as _i58;
 import 'package:strange/features/settings/domain/entities/pomodoro_settings.dart'
     as _i651;
+import 'package:strange/features/stats/data/datasources/stats_local_datasource.dart'
+    as _i873;
+import 'package:strange/features/stats/data/repositories/stats_repository_impl.dart'
+    as _i65;
+import 'package:strange/features/stats/domain/repositories/stats_repository.dart'
+    as _i662;
+import 'package:strange/features/stats/domain/usecases/get_column_data_usecase.dart'
+    as _i53;
+import 'package:strange/features/stats/domain/usecases/get_heatmap_data_usecase.dart'
+    as _i1039;
+import 'package:strange/features/stats/domain/usecases/get_pie_data_usecase.dart'
+    as _i650;
+import 'package:strange/features/stats/presentation/cubit/stats_cubit.dart'
+    as _i97;
 import 'package:strange/features/working/data/datasources/timer_preferences.dart'
     as _i806;
 import 'package:strange/features/working/data/datasources/timer_service.dart'
@@ -90,12 +104,25 @@ extension GetItInjectableX on _i174.GetIt {
         () => appModule.cardDao(gh<_i438.AppDatabase>()));
     gh.lazySingleton<_i905.SessionDao>(
         () => appModule.sessionDao(gh<_i438.AppDatabase>()));
+    gh.lazySingleton<_i873.StatsLocalDatasource>(
+        () => _i873.StatsLocalDatasource(
+              gh<_i905.SessionDao>(),
+              gh<_i913.CardDao>(),
+            ));
+    gh.lazySingleton<_i662.StatsRepository>(
+        () => _i65.StatsRepositoryImpl(gh<_i873.StatsLocalDatasource>()));
     gh.lazySingleton<_i32.SessionRepository>(
         () => _i61.SessionRepositoryImpl(gh<_i905.SessionDao>()));
     gh.lazySingleton<_i277.CardRepository>(() => _i707.CardRepositoryImpl(
           gh<_i913.CardDao>(),
           gh<_i905.SessionDao>(),
         ));
+    gh.factory<_i53.GetColumnDataUsecase>(
+        () => _i53.GetColumnDataUsecase(gh<_i662.StatsRepository>()));
+    gh.factory<_i1039.GetHeatmapDataUsecase>(
+        () => _i1039.GetHeatmapDataUsecase(gh<_i662.StatsRepository>()));
+    gh.factory<_i650.GetPieDataUsecase>(
+        () => _i650.GetPieDataUsecase(gh<_i662.StatsRepository>()));
     gh.lazySingleton<_i316.SaveSessionUseCase>(
         () => _i316.SaveSessionUseCase(gh<_i32.SessionRepository>()));
     gh.lazySingleton<_i474.ArchiveCardUseCase>(
@@ -118,6 +145,11 @@ extension GetItInjectableX on _i174.GetIt {
           gh<_i913.CreateCardUseCase>(),
           gh<_i319.UpdateCardUseCase>(),
           gh<_i494.GetCardByIdUseCase>(),
+        ));
+    gh.factory<_i97.StatsCubit>(() => _i97.StatsCubit(
+          gh<_i1039.GetHeatmapDataUsecase>(),
+          gh<_i53.GetColumnDataUsecase>(),
+          gh<_i650.GetPieDataUsecase>(),
         ));
     gh.factory<_i663.HomeCubit>(() => _i663.HomeCubit(
           gh<_i33.WatchCardsByTypeUseCase>(),

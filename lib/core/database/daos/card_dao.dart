@@ -19,11 +19,10 @@ class CardDao extends DatabaseAccessor<AppDatabase> with _$CardDaoMixin {
           .get();
 
   /// Watch active cards of a given type (reactive stream).
-  Stream<List<CardData>> watchCardsByType(String type) =>
-      (select(cards)
-            ..where((c) => c.type.equals(type) & c.status.equals('active'))
-            ..orderBy([(c) => OrderingTerm.asc(c.position)]))
-          .watch();
+  Stream<List<CardData>> watchCardsByType(String type) => (select(cards)
+        ..where((c) => c.type.equals(type) & c.status.equals('active'))
+        ..orderBy([(c) => OrderingTerm.asc(c.position)]))
+      .watch();
 
   Future<CardData?> getCardById(int id) =>
       (select(cards)..where((c) => c.id.equals(id))).getSingleOrNull();
@@ -36,6 +35,8 @@ class CardDao extends DatabaseAccessor<AppDatabase> with _$CardDaoMixin {
 
   Future<int> deleteCardById(int id) =>
       (delete(cards)..where((c) => c.id.equals(id))).go();
+
+  Future<List<CardData>> getAllCards() => select(cards).get();
 
   /// Batch update position for multiple cards (reorder).
   Future<void> reorderCards(List<CardsCompanion> companions) async {
