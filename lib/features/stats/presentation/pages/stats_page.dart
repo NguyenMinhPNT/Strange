@@ -107,78 +107,96 @@ class _ErrorBody extends StatelessWidget {
   }
 }
 
-class _LoadedBody extends StatelessWidget {
+class _LoadedBody extends StatefulWidget {
   const _LoadedBody({required this.state});
 
   final StatsLoaded state;
 
   @override
-  Widget build(BuildContext context) {
-    final totalHours = state.totalWorkSeconds / 3600;
-    final totalLabel = totalHours >= 1
-        ? '${totalHours.toStringAsFixed(1)}h'
-        : '${state.totalWorkSeconds ~/ 60}m';
+  State<_LoadedBody> createState() => _LoadedBodyState();
+}
 
+class _LoadedBodyState extends State<_LoadedBody> {
+  static const _sectionLabels = [
+    'Activity',
+    'Daily Breakdown',
+    'By Category',
+  ];
+
+  String _selectedSection = _sectionLabels.first;
+
+  @override
+  Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Range selector
           const StatsRangeSelector(),
-          const SizedBox(height: 24),
-
-          // Summary chip
-          _SummaryChip(label: 'Total focus time: $totalLabel'),
-          const SizedBox(height: 28),
-
-          // Heatmap
-          const StatsSectionHeader(title: 'Activity'),
-          HeatmapCalendar(data: state.heatmap, range: state.range),
-          const SizedBox(height: 6),
-          const HeatmapLegend(),
-          const SizedBox(height: 28),
-
-          // Column chart
-          const StatsSectionHeader(title: 'Daily Breakdown'),
-          _ClayCard(child: ColumnChartWidget(data: state.columns)),
-          const SizedBox(height: 28),
-
-          // Pie chart
-          const StatsSectionHeader(title: 'By Category'),
-          _ClayCard(
-            child: PieChartWidget(
-              slices: state.pieSlices,
-              totalSeconds: state.totalWorkSeconds,
+          const SizedBox(height: 20),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceElevated,
+                borderRadius: BorderRadius.circular(16),
+                border:
+                    Border.all(color: AppColors.textSecondary.withOpacity(0.2)),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedSection,
+                  dropdownColor: AppColors.surfaceElevated,
+                  items: _sectionLabels
+                      .map(
+                        (label) => DropdownMenuItem(
+                          value: label,
+                          child: Text(label,
+                              style: const TextStyle(
+                                  color: AppColors.textPrimary)),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedSection = value;
+                      });
+                    }
+                  },
+                  icon: const Icon(Icons.arrow_drop_down,
+                      color: AppColors.primary),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
             ),
           ),
+          const SizedBox(height: 20),
+          if (_selectedSection == 'Activity') ...[
+            const StatsSectionHeader(title: 'Activity'),
+            HeatmapCalendar(
+                data: widget.state.heatmap, range: widget.state.range),
+            const SizedBox(height: 6),
+            const HeatmapLegend(),
+          ] else if (_selectedSection == 'Daily Breakdown') ...[
+            const StatsSectionHeader(title: 'Daily Breakdown'),
+            _ClayCard(child: ColumnChartWidget(data: widget.state.columns)),
+          ] else ...[
+            const StatsSectionHeader(title: 'By Category'),
+            _ClayCard(
+              child: PieChartWidget(
+                slices: widget.state.pieSlices,
+                totalSeconds: widget.state.totalWorkSeconds,
+              ),
+            ),
+          ],
           const SizedBox(height: 32),
         ],
-      ),
-    );
-  }
-}
-
-class _SummaryChip extends StatelessWidget {
-  const _SummaryChip({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.primaryContainer,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: AppColors.primary,
-        ),
       ),
     );
   }
