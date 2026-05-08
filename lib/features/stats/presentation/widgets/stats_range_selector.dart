@@ -14,7 +14,7 @@ class StatsRangeSelector extends StatelessWidget {
     return BlocBuilder<StatsCubit, StatsState>(
       builder: (context, state) {
         final current =
-            state is StatsLoaded ? state.range : StatsRange.sevenDays;
+            state is StatsLoaded ? state.range : StatsRange.oneMonth;
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: StatsRange.values.map((range) {

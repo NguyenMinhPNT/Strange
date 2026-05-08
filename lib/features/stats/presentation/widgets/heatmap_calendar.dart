@@ -10,19 +10,71 @@ class HeatmapCalendar extends StatefulWidget {
     super.key,
     required this.data,
     required this.range,
+    required this.visibleStart,
+    required this.visibleEnd,
   });
 
   final List<DayStat> data;
   final StatsRange range;
+  final DateTime visibleStart;
+  final DateTime visibleEnd;
 
   @override
   State<HeatmapCalendar> createState() => _HeatmapCalendarState();
 }
 
 class _HeatmapCalendarState extends State<HeatmapCalendar> {
+  static const double _scale = 1.35;
+
   DateTime? _tappedDay;
+  late final ScrollController _scrollController;
   late Map<String, int> _statsByDay;
   late List<List<DateTime?>> _weeks;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _scheduleScrollToTodayIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(covariant HeatmapCalendar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.range != widget.range ||
+        oldWidget.data != widget.data ||
+        oldWidget.visibleStart != widget.visibleStart ||
+        oldWidget.visibleEnd != widget.visibleEnd) {
+      _scheduleScrollToTodayIfNeeded();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToToday() {
+    if (!_scrollController.hasClients) return;
+    final target = _scrollController.position.maxScrollExtent;
+    _scrollController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
+  void _scheduleScrollToTodayIfNeeded() {
+    if (widget.range != StatsRange.threeMonths &&
+        widget.range != StatsRange.oneYear) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _scrollToToday();
+    });
+  }
 
   void _onTap(DateTime day, int seconds) {
     setState(() => _tappedDay = day);
@@ -57,33 +109,41 @@ class _HeatmapCalendarState extends State<HeatmapCalendar> {
       for (final s in widget.data) _dayKey(s.date): s.totalSeconds,
     };
 
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final start = widget.range.startDate;
+    final start = DateTime(
+      widget.visibleStart.year,
+      widget.visibleStart.month,
+      widget.visibleStart.day,
+    );
+    final end = DateTime(
+      widget.visibleEnd.year,
+      widget.visibleEnd.month,
+      widget.visibleEnd.day,
+    );
     final firstMonday = _startOfWeek(start);
 
     _weeks = <List<DateTime?>>[];
     var weekStart = firstMonday;
-    while (!weekStart.isAfter(today)) {
+    while (!weekStart.isAfter(end)) {
       final week = <DateTime?>[];
       for (int i = 0; i < 7; i++) {
         final day = weekStart.add(Duration(days: i));
-        week.add(day.isBefore(start) || day.isAfter(today) ? null : day);
+        week.add(day.isBefore(start) || day.isAfter(end) ? null : day);
       }
       _weeks.add(week);
       weekStart = weekStart.add(const Duration(days: 7));
     }
 
-    const dotSize = 15.0;
-    const rowGap = 9.0;
-    const columnGap = 9.0;
-    const dayLabelWidth = 44.0;
+    const dotSize = 15.0 * _scale;
+    const rowGap = 9.0 * _scale;
+    const columnGap = 9.0 * _scale;
+    const dayLabelWidth = 44.0 * _scale;
     const cellWidth = dotSize + columnGap;
     const cellHeight = dotSize + rowGap;
     final chartWidth = dayLabelWidth + _weeks.length * cellWidth;
     const chartHeight = 7 * cellHeight;
 
     return SingleChildScrollView(
+      controller: _scrollController,
       scrollDirection: Axis.horizontal,
       child: SizedBox(
         width: chartWidth,
@@ -107,6 +167,7 @@ class _HeatmapCalendarState extends State<HeatmapCalendar> {
               weeks: _weeks,
               statsByDay: _statsByDay,
               tappedDay: _tappedDay,
+              scale: _scale,
             ),
           ),
         ),
@@ -114,9 +175,10 @@ class _HeatmapCalendarState extends State<HeatmapCalendar> {
     );
   }
 
-  DateTime _startOfWeek(DateTime date) {
-    final weekday = date.weekday; // Mon=1, Sun=7
-    return date.subtract(Duration(days: weekday - 1));
+  DateTime _startOfWeek(DateTime? date) {
+    final current = date ?? DateTime.now();
+    final weekday = current.weekday; // Mon=1, Sun=7
+    return current.subtract(Duration(days: weekday - 1));
   }
 
   String _dayKey(DateTime d) => '${d.year}-${d.month}-${d.day}';
@@ -127,29 +189,31 @@ class _HeatmapPainter extends CustomPainter {
     required this.weeks,
     required this.statsByDay,
     this.tappedDay,
+    required this.scale,
   });
 
   final List<List<DateTime?>> weeks;
   final Map<String, int> statsByDay;
   final DateTime? tappedDay;
+  final double scale;
 
-  static const dotSize = 15.0;
-  static const rowGap = 9.0;
-  static const columnGap = 9.0;
-  static const dayLabelWidth = 44.0;
-  static const cellWidth = dotSize + columnGap;
-  static const cellHeight = dotSize + rowGap;
   static const _dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   @override
   void paint(Canvas canvas, Size size) {
+    final dotSize = 15.0 * scale;
+    final rowGap = 9.0 * scale;
+    final columnGap = 9.0 * scale;
+    final dayLabelWidth = 44.0 * scale;
+    final cellWidth = dotSize + columnGap;
+    final cellHeight = dotSize + rowGap;
     final textPainter = TextPainter(textDirection: TextDirection.ltr);
 
     for (int row = 0; row < 7; row++) {
       textPainter.text = TextSpan(
         text: _dayLabels[row],
-        style: const TextStyle(
-          fontSize: 13,
+        style: TextStyle(
+          fontSize: 13 * scale,
           color: AppColors.textSecondary,
           fontWeight: FontWeight.w500,
         ),
@@ -181,11 +245,11 @@ class _HeatmapPainter extends CustomPainter {
         if (isTapped) {
           canvas.drawCircle(
             Offset(cx, cy),
-            dotSize / 2 + 1.5,
+            dotSize / 2 + (1.5 * scale),
             Paint()
               ..color = AppColors.primaryDark
               ..style = PaintingStyle.stroke
-              ..strokeWidth = 1.5,
+              ..strokeWidth = 1.5 * scale,
           );
         }
       }

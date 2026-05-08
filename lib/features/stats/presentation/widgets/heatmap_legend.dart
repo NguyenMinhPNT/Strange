@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 
 class HeatmapLegend extends StatelessWidget {
   const HeatmapLegend({super.key});
+  static const double _scale = 1.35;
 
   @override
   Widget build(BuildContext context) {
@@ -17,41 +18,44 @@ class HeatmapLegend extends StatelessWidget {
       Color(0xFFD52B1E),
     ];
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Text(
-          'Less',
-          style: TextStyle(
-            fontSize: 14,
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w500,
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            'Less',
+            style: TextStyle(
+              fontSize: 14 * _scale,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-        ...levels.map(
-          (color) => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5),
-            child: Container(
-              width: 15,
-              height: 15,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
+          const SizedBox(width: 12 * _scale),
+          ...levels.map(
+            (color) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5 * _scale),
+              child: Container(
+                width: 15 * _scale,
+                height: 15 * _scale,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        const Text(
-          'More',
-          style: TextStyle(
-            fontSize: 14,
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w500,
+          const SizedBox(width: 12 * _scale),
+          const Text(
+            'More',
+            style: TextStyle(
+              fontSize: 14 * _scale,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

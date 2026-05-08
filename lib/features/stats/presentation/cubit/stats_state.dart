@@ -22,6 +22,8 @@ final class StatsLoaded extends StatsState {
     required this.columns,
     required this.pieSlices,
     required this.range,
+    required this.periodStart,
+    required this.periodEnd,
     required this.totalWorkSeconds,
     required this.cards,
     required this.selectedCardId,
@@ -31,6 +33,8 @@ final class StatsLoaded extends StatsState {
   final List<ColumnData> columns;
   final List<PieSlice> pieSlices;
   final StatsRange range;
+  final DateTime periodStart;
+  final DateTime periodEnd;
   final int totalWorkSeconds;
   final List<StatsCard> cards;
   final int? selectedCardId;

@@ -241,6 +241,11 @@ class _LoadedBodyState extends State<_LoadedBody> {
             _FocusHeatmapCard(
               data: widget.state.heatmap,
               range: widget.state.range,
+              periodStart: widget.state.periodStart,
+              periodEnd: widget.state.periodEnd,
+              onPreviousMonth: () =>
+                  context.read<StatsCubit>().showPreviousOneMonth(),
+              onNextMonth: () => context.read<StatsCubit>().showNextOneMonth(),
             ),
           ] else if (selectedSection == 'Daily Breakdown') ...[
             const StatsSectionHeader(title: 'Daily Breakdown'),
@@ -265,16 +270,38 @@ class _FocusHeatmapCard extends StatelessWidget {
   const _FocusHeatmapCard({
     required this.data,
     required this.range,
+    required this.periodStart,
+    required this.periodEnd,
+    required this.onPreviousMonth,
+    required this.onNextMonth,
   });
 
   final List<DayStat> data;
   final StatsRange range;
+  final DateTime periodStart;
+  final DateTime periodEnd;
+  final VoidCallback onPreviousMonth;
+  final VoidCallback onNextMonth;
+  static const double _scale = 1.35;
 
   @override
   Widget build(BuildContext context) {
-    final monthLabel = DateFormat('MMMM yyyy', 'en_US').format(DateTime.now());
+    final showMonthNavigator = range == StatsRange.oneMonth;
+    final monthLabel = DateFormat('MMMM yyyy', 'en_US').format(periodStart);
+    final now = DateTime.now();
+    final currentMonthStart = DateTime(now.year, now.month, 1);
+    final canMoveNext = !DateTime(
+      periodStart.year,
+      periodStart.month,
+      1,
+    ).isAtSameMomentAs(currentMonthStart);
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+      padding: const EdgeInsets.fromLTRB(
+        16 * _scale,
+        16 * _scale,
+        16 * _scale,
+        14 * _scale,
+      ),
       decoration: BoxDecoration(
         color: AppColors.surfaceElevated,
         borderRadius: BorderRadius.circular(24),
@@ -297,35 +324,49 @@ class _FocusHeatmapCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
-                child: Text(
-                  'Focus Heatmap',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+              const Spacer(),
+              if (showMonthNavigator) ...[
+                Text(
+                  monthLabel,
+                  style: const TextStyle(
+                    fontSize: 14 * _scale,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textOnSurface,
                   ),
                 ),
-              ),
-              Text(
-                monthLabel,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textOnSurface,
+                const SizedBox(width: 4 * _scale),
+                IconButton(
+                  onPressed: onPreviousMonth,
+                  icon: const Icon(
+                    Icons.chevron_left_rounded,
+                    size: 20 * _scale,
+                    color: AppColors.textSecondary,
+                  ),
+                  splashRadius: 18 * _scale,
+                  visualDensity: VisualDensity.compact,
                 ),
-              ),
-              const SizedBox(width: 8),
-              const Icon(Icons.chevron_left_rounded,
-                  size: 20, color: AppColors.textSecondary),
-              const SizedBox(width: 4),
-              const Icon(Icons.chevron_right_rounded,
-                  size: 20, color: AppColors.textSecondary),
+                IconButton(
+                  onPressed: canMoveNext ? onNextMonth : null,
+                  icon: const Icon(
+                    Icons.chevron_right_rounded,
+                    size: 20 * _scale,
+                  ),
+                  splashRadius: 18 * _scale,
+                  visualDensity: VisualDensity.compact,
+                  color: AppColors.textSecondary,
+                  disabledColor: AppColors.textSecondary.withValues(alpha: 0.3),
+                ),
+              ],
             ],
           ),
-          const SizedBox(height: 12),
-          HeatmapCalendar(data: data, range: range),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12 * _scale),
+          HeatmapCalendar(
+            data: data,
+            range: range,
+            visibleStart: periodStart,
+            visibleEnd: periodEnd,
+          ),
+          const SizedBox(height: 10 * _scale),
           const HeatmapLegend(),
         ],
       ),

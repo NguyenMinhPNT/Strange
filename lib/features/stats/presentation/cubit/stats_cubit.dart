@@ -23,19 +23,48 @@ class StatsCubit extends Cubit<StatsState> {
   final StatsRepository _repository;
 
   Future<void> loadStats([
-    StatsRange range = StatsRange.sevenDays,
+    StatsRange range = StatsRange.oneMonth,
     int? cardId,
+    DateTime? oneMonthReference,
   ]) async {
     emit(const StatsLoading());
     try {
       final now = DateTime.now();
-      final endDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
-      final start = range.startDate;
+      final today = DateTime(now.year, now.month, now.day);
+
+      late final DateTime start;
+      late final DateTime end;
+      if (range == StatsRange.oneMonth) {
+        final fallbackReference = state is StatsLoaded &&
+                (state as StatsLoaded).range == StatsRange.oneMonth
+            ? (state as StatsLoaded).periodStart
+            : today;
+        final reference = oneMonthReference ?? fallbackReference;
+        final monthStart = DateTime(reference.year, reference.month, 1);
+        final monthEnd = DateTime(
+          reference.year,
+          reference.month + 1,
+          0,
+          23,
+          59,
+          59,
+        );
+        final currentMonthStart = DateTime(today.year, today.month, 1);
+        final isCurrentMonth = monthStart.year == currentMonthStart.year &&
+            monthStart.month == currentMonthStart.month;
+        start = monthStart;
+        end = isCurrentMonth
+            ? DateTime(today.year, today.month, today.day, 23, 59, 59)
+            : monthEnd;
+      } else {
+        start = range.startDate;
+        end = DateTime(today.year, today.month, today.day, 23, 59, 59);
+      }
 
       final cards = await _repository.getAllCards();
-      final heatmap = await _getHeatmapData(start, endDay, cardId);
-      final columns = await _getColumnData(start, endDay, cardId);
-      final pieSlices = await _getPieData(start, endDay, cardId);
+      final heatmap = await _getHeatmapData(start, end, cardId);
+      final columns = await _getColumnData(start, end, cardId);
+      final pieSlices = await _getPieData(start, end, cardId);
 
       final totalSeconds = pieSlices.fold(0, (s, p) => s + p.totalSeconds);
 
@@ -45,6 +74,8 @@ class StatsCubit extends Cubit<StatsState> {
           columns: columns,
           pieSlices: pieSlices,
           range: range,
+          periodStart: start,
+          periodEnd: end,
           totalWorkSeconds: totalSeconds,
           cards: cards,
           selectedCardId: cardId,
@@ -58,13 +89,47 @@ class StatsCubit extends Cubit<StatsState> {
   Future<void> changeRange(StatsRange range) {
     final selectedCardId =
         state is StatsLoaded ? (state as StatsLoaded).selectedCardId : null;
-    return loadStats(range, selectedCardId);
+    final oneMonthReference =
+        state is StatsLoaded && range == StatsRange.oneMonth
+            ? (state as StatsLoaded).periodStart
+            : null;
+    return loadStats(range, selectedCardId, oneMonthReference);
   }
 
   Future<void> changeCardFilter(int? cardId) {
     final currentRange = state is StatsLoaded
         ? (state as StatsLoaded).range
-        : StatsRange.sevenDays;
-    return loadStats(currentRange, cardId);
+        : StatsRange.oneMonth;
+    final oneMonthReference =
+        state is StatsLoaded && currentRange == StatsRange.oneMonth
+            ? (state as StatsLoaded).periodStart
+            : null;
+    return loadStats(currentRange, cardId, oneMonthReference);
+  }
+
+  Future<void> showPreviousOneMonth() {
+    final current = state;
+    if (current is! StatsLoaded || current.range != StatsRange.oneMonth) {
+      return Future.value();
+    }
+    final previousMonth =
+        DateTime(current.periodStart.year, current.periodStart.month - 1, 1);
+    return loadStats(
+        StatsRange.oneMonth, current.selectedCardId, previousMonth);
+  }
+
+  Future<void> showNextOneMonth() {
+    final current = state;
+    if (current is! StatsLoaded || current.range != StatsRange.oneMonth) {
+      return Future.value();
+    }
+    final nextMonth =
+        DateTime(current.periodStart.year, current.periodStart.month + 1, 1);
+    final now = DateTime.now();
+    final currentMonthStart = DateTime(now.year, now.month, 1);
+    if (nextMonth.isAfter(currentMonthStart)) {
+      return Future.value();
+    }
+    return loadStats(StatsRange.oneMonth, current.selectedCardId, nextMonth);
   }
 }
