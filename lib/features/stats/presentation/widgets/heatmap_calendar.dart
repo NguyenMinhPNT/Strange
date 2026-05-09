@@ -119,6 +119,7 @@ class _HeatmapCalendarState extends State<HeatmapCalendar> {
       widget.visibleEnd.month,
       widget.visibleEnd.day,
     );
+    final highlightedDay = _resolveHighlightedDay(start, end);
     final firstMonday = _startOfWeek(start);
 
     _weeks = <List<DateTime?>>[];
@@ -166,7 +167,7 @@ class _HeatmapCalendarState extends State<HeatmapCalendar> {
             painter: _HeatmapPainter(
               weeks: _weeks,
               statsByDay: _statsByDay,
-              tappedDay: _tappedDay,
+              highlightedDay: highlightedDay,
               scale: _scale,
             ),
           ),
@@ -181,6 +182,16 @@ class _HeatmapCalendarState extends State<HeatmapCalendar> {
     return current.subtract(Duration(days: weekday - 1));
   }
 
+  DateTime? _resolveHighlightedDay(DateTime start, DateTime end) {
+    if (_tappedDay != null) {
+      return _tappedDay;
+    }
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final inRange = !today.isBefore(start) && !today.isAfter(end);
+    return inRange ? today : null;
+  }
+
   String _dayKey(DateTime d) => '${d.year}-${d.month}-${d.day}';
 }
 
@@ -188,13 +199,13 @@ class _HeatmapPainter extends CustomPainter {
   _HeatmapPainter({
     required this.weeks,
     required this.statsByDay,
-    this.tappedDay,
+    this.highlightedDay,
     required this.scale,
   });
 
   final List<List<DateTime?>> weeks;
   final Map<String, int> statsByDay;
-  final DateTime? tappedDay;
+  final DateTime? highlightedDay;
   final double scale;
 
   static const _dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -238,11 +249,11 @@ class _HeatmapPainter extends CustomPainter {
 
         canvas.drawCircle(Offset(cx, cy), dotSize / 2, Paint()..color = color);
 
-        final isTapped = tappedDay != null &&
-            day.year == tappedDay!.year &&
-            day.month == tappedDay!.month &&
-            day.day == tappedDay!.day;
-        if (isTapped) {
+        final isHighlighted = highlightedDay != null &&
+            day.year == highlightedDay!.year &&
+            day.month == highlightedDay!.month &&
+            day.day == highlightedDay!.day;
+        if (isHighlighted) {
           canvas.drawCircle(
             Offset(cx, cy),
             dotSize / 2 + (1.5 * scale),
@@ -277,5 +288,5 @@ class _HeatmapPainter extends CustomPainter {
   bool shouldRepaint(_HeatmapPainter old) =>
       old.weeks != weeks ||
       old.statsByDay != statsByDay ||
-      old.tappedDay != tappedDay;
+      old.highlightedDay != highlightedDay;
 }

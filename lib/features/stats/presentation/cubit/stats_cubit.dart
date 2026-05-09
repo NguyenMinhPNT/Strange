@@ -89,10 +89,9 @@ class StatsCubit extends Cubit<StatsState> {
   Future<void> changeRange(StatsRange range) {
     final selectedCardId =
         state is StatsLoaded ? (state as StatsLoaded).selectedCardId : null;
-    final oneMonthReference =
-        state is StatsLoaded && range == StatsRange.oneMonth
-            ? (state as StatsLoaded).periodStart
-            : null;
+    final oneMonthReference = range == StatsRange.oneMonth
+        ? DateTime.now()
+        : null;
     return loadStats(range, selectedCardId, oneMonthReference);
   }
 
